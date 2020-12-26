@@ -1,0 +1,143 @@
+#include <iostream>
+#include <map>
+#include <vector>
+#include <sstream>
+#include <math.h>
+#include<string.h>
+using namespace std;
+int N, Q;
+int chiso[1000];
+vector<string> tmp;
+vector<vector<string>> document;
+double f(string t, vector<string> d){
+    //so lan xuat hien cua t trong van ban d
+    int fresult=0;
+    for(int i=0;i!=(int)d.size();i++){
+        if(t.compare(d.at(i))==0)
+            fresult++;
+    }
+    return fresult;
+}
+double maxf(vector<string> d){
+    //gia tri lon nhat cua f voi moi t
+    int a[d.size()];
+    memset(a, 0, sizeof(a));
+    for(int i=0;i!=d.size();i++){
+        for(int j=0;j!=d.size();j++){
+            if(d.at(i).compare(d.at(j))==0 && i!=j){
+                //co su trung nhau
+                a[i]+=1;
+            }
+        }
+    }
+    int maxResult=a[0];
+    for(int i=1;i!=(int)d.size();i++){
+        //tim max tu phan tu thu 1->size()-1
+           if(maxResult<a[i])
+                maxResult=a[i];
+    }
+    return maxResult+1.0;
+}
+double df(string t){
+    //so van ban chua tu t
+    int dfResult=0;
+    for(int i=0;i!=(int)document.size();i++){
+            //lay tung van ban
+//            cout<<"document " <<i<<endl;
+        for(int j=0;j!=(int)document.at(i).size();j++){
+            //truy nhap tung phan tu trong tung van ban
+//            cout<<document.at(i).at(j)<<endl;
+            if(t.compare(document.at(i).at(j))==0){
+                dfResult++;
+                break;
+            }
+        }
+    }
+    return dfResult;
+}
+double TF(string t, vector<string> d){
+
+    if(f(t,d)==0||maxf(d)==0)
+        return 0;
+    else{
+
+        return 0.5+0.5*f(t,d)/maxf(d);
+    }
+}
+double IDF(string t){
+    if(df(t)==0)
+        return 0;
+    else
+        return log((double)N/df(t))/log(2);
+}
+double score(string t, vector<string> d){
+    //diem so cua tu i xuat hien trong van ban d
+    return TF(t,d)*IDF(t);
+}
+double sumScore(vector<string> d){
+    //diem so cua van ban d ung voi truy van gom cac tu t1, t2, t3,...
+    double sumResult=0.0;
+    for(int i=0;i!=(int)tmp.size();i++){
+        sumResult += score(tmp.at(i),d);
+    }
+    return sumResult;
+}
+int main(){
+    //nhap document
+    memset(chiso,0,sizeof(chiso));
+
+    cin>>N;
+    cin.ignore();
+    string s;
+    for(int i=0;i<N;i++){
+        //tach chuoi da cho
+        getline(cin, s);
+        std::string delim = ",";
+        vector<string> tmp2;
+        auto start = 0U;
+        auto end = s.find(delim);
+        while (end != std::string::npos)
+        {
+            tmp2.push_back(s.substr(start, end - start));
+            start = end + delim.length();
+            end = s.find(delim, start);
+        }
+        tmp2.push_back(s.substr(start, end));
+        document.push_back(tmp2);
+    }
+
+//    nhap query
+    cin>>Q;
+    cin.ignore();
+
+    for(int i=0;i<Q;i++){
+        //tach chuoi da cho
+
+        getline(cin, s);
+        std::string delim = ",";
+        auto start = 0U;
+        auto end = s.find(delim);
+        while (end != std::string::npos)
+        {
+            tmp.push_back(s.substr(start, end - start));
+            start = end + delim.length();
+            end = s.find(delim, start);
+        }
+        tmp.push_back(s.substr(start, end));
+        //tim dc query
+        double kq=sumScore(document[0]);
+        int maxquery=0;
+        for(int x=1;x!=(int)document.size();x++){
+            if(kq<sumScore(document[x])){
+                kq=sumScore(document[x]);
+                maxquery=x;
+            }
+        }
+        chiso[i]=maxquery;
+        kq=0;
+        tmp.clear();
+    }
+    for(int i=0;i<Q;i++){
+        cout<<chiso[i]+1<<endl;
+    }
+}
